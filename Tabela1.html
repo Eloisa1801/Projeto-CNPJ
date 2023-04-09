@@ -40,15 +40,26 @@
 		button:hover {
 			background-color: #2c3e50;
 		}
+
+        .cell-correct {
+        background-color: green;
+        color: white;
+        }
+
+        .cell-incorrect {
+        background-color: red;
+        color: white;
+        }
         
 	</style>
 </head>
-<body>
+<body onload="colorizeTable()">
 	<div class="container">
 		<div class="table" id="table1"></div>
 	</div>
-     <button id="colorize-button" onclick="colorizeCells()">Colorir</button>
-     <!-- <button id="verificar-button" onclick="verificarTabela()">Verificar Valor</button> -->
+     <button id="colorize-button" onclick="resetTable()">Atualizar</button>
+     <button id="verify-button" onclick="verifyTable()">Verificar Resposta</button>
+     
 	<script>
 		// Criando a tabela 1 com os números de 1 a 50
 		var table1 = document.getElementById("table1");
@@ -67,17 +78,32 @@
 		function colorizeTable() {
         // Criando a tabela 2 com números aleatórios entre 0 e 1
         var table2 = document.createElement("div");
-        for (var i = 0; i < 5; i++) {
-            var row = document.createElement("div");
-            row.classList.add("row");
-            for (var j = 1; j <= 10; j++) {
-            var cell = document.createElement("div");
-            cell.classList.add("cell");
-            cell.innerHTML = Math.round(Math.random());
-            row.appendChild(cell);
+            for (var i = 0; i < 5; i++) {
+                var row = document.createElement("div");
+                row.classList.add("row");
+                var sequenceCount = 0; // Contador para controlar sequência de uns
+                for (var j = 1; j <= 10; j++) {
+                    var cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    var randomNum = Math.round(Math.random());
+                    // Verifica se já temos uma sequência de três uns seguidos
+                    if (randomNum == 1) {
+                        sequenceCount++;
+                        if (sequenceCount > 3) {
+                            // Gera novo número aleatório até que a sequência seja quebrada
+                            while (randomNum == 1) {
+                                randomNum = Math.round(Math.random());
+                            }
+                            sequenceCount = 0;
+                        }
+                    } else {
+                        sequenceCount = 0;
+                    }
+                    cell.innerHTML = randomNum;
+                    row.appendChild(cell);
+                }
+                table2.appendChild(row);
             }
-            table2.appendChild(row);
-        }
 
         // Colorindo as células da tabela 1 de acordo com os valores da tabela 2
         var cells1 = document.querySelectorAll("#table1 .cell");
@@ -88,6 +114,15 @@
             cells1[i].innerHTML = "";
             cells1[i].contentEditable = true;
             cells1[i].focus();
+            
+            // Adicionando o event listener para permitir apenas números
+            cells1[i].addEventListener("keydown", function(event) {
+                // Verifica se a tecla pressionada é um número
+                if (!(event.key >= "0" && event.key <= "9") && event.keyCode !== 8 && event.keyCode !== 46) {
+                event.preventDefault();
+                }
+            });
+
             } else {
             cells1[i].classList.remove("blue");
             cells1[i].innerHTML = i + 1;
@@ -100,7 +135,45 @@
         var colorizeButton = document.getElementById("colorize-button");
         colorizeButton.addEventListener("click", colorizeTable);
 
-     
+
+        function validateTable() {
+        var cells1 = document.querySelectorAll("#table1 .cell");
+        for (var i = 0; i < cells1.length; i++) {
+            if (cells1[i].innerHTML != i + 1) {
+            return false; // Se a célula não estiver preenchida corretamente, retorna false
+            }
+        }
+        return true; // Se todas as células estiverem preenchidas corretamente, retorna true
+        }
+
+        function verifyTable() {
+            // Remove todas as classes de estilo adicionadas anteriormente
+            var cells1 = document.querySelectorAll("#table1 .cell");
+            cells1.forEach(function(cell) {
+                cell.classList.remove("correct", "incorrect");
+            });
+
+            for (var i = 0; i < cells1.length; i++) {
+                let isTableCorrect = true;
+                var cell1Value = cells1[i].innerHTML;
+                var cell1CorrectValue = i + 1;
+
+                if (cell1Value == cell1CorrectValue) {
+                cells1[i].classList.remove("cell-incorrect");
+                cells1[i].classList.add("cell-correct");
+                } else {
+                cells1[i].classList.remove("cell-correct");
+                cells1[i].classList.add("cell-incorrect");
+                isTableCorrect = false;
+                }
+            }
+           
+            }
+
+            function resetTable() {
+            window.location.reload();
+            colorizeTable();
+            }
 
 
 	</script>
