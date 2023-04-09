@@ -18,13 +18,16 @@
 		}
 
 		.blue {
-			background-color: blue;
-			color: white;
+			background-color: rgb(99, 152, 202);
+			color: #333;
+            box-shadow: 0 0 10px #c2d8f7;
+            transition: background-color 0.3s ease;
 		}
         .cell:hover {
             background-color: #eee;
             color: #111;
             cursor: pointer;
+            box-shadow: 0 0 10px 5px rgba(0, 0, 255, 0.5);
         }
         button {
 			margin-top: 20px;
@@ -42,13 +45,21 @@
 		}
 
         .cell-correct {
-        background-color: green;
-        color: white;
+            background-color: #5cb85c; /* cor verde */
+            color: #fff; /* Cor do texto branco */
+            font-weight: bold; /* Texto em negrito */
+            transition: all 0.2s ease-in-out; /* Efeito de transição suave */
+            box-shadow: 0px 0px 10px #5cb85c; /* efeito de luminosidade */
+            border: 2px solid #389738; /* borda verde */
         }
 
         .cell-incorrect {
-        background-color: red;
-        color: white;
+            background-color: rgba(255, 0, 0, 0.3); /* cor de fundo vermelha com transparência */
+            color: #fff; /* Cor do texto branco */
+            font-weight: bold; /* Texto em negrito */
+            transition: all 0.2s ease-in-out; /* Efeito de transição suave */
+            box-shadow: 0px 0px 10px rgba(255, 0, 0, 0.3); /* efeito de luminosidade */
+            border: 2px solid #ff0000; /* borda vermelha */
         }
         
 	</style>
@@ -57,7 +68,7 @@
 	<div class="container">
 		<div class="table" id="table1"></div>
 	</div>
-     <button id="colorize-button" onclick="resetTable()">Atualizar</button>
+     <button id="colorize-button" onclick="colorizeTable()">Atualizar</button>
      <button id="verify-button" onclick="verifyTable()">Verificar Resposta</button>
      
 	<script>
@@ -147,34 +158,50 @@
         }
 
         function verifyTable() {
-            // Remove todas as classes de estilo adicionadas anteriormente
+            // Verifica se todas as células estão preenchidas
             var cells1 = document.querySelectorAll("#table1 .cell");
-            cells1.forEach(function(cell) {
-                cell.classList.remove("correct", "incorrect");
+            var isTableComplete = true;
+            for (var i = 0; i < cells1.length; i++) {
+                if (cells1[i].innerHTML === "") {
+                isTableComplete = false;
+                break;
+                }
+            }
+
+            if (!isTableComplete) {
+                // Se não estiver completa, exibe um alerta
+                alert("Por favor, finalize a sequência numérica.");
+                return;
+            }
+
+            // Remove todas as classes de estilo adicionadas anteriormente
+            cells1.forEach(function (cell) {
+                cell.classList.remove("correct", "incorrect", "animated", "flash", "pulse", "border-danger", "border-success");
             });
 
+            var isTableCorrect = true;
             for (var i = 0; i < cells1.length; i++) {
-                let isTableCorrect = true;
                 var cell1Value = cells1[i].innerHTML;
                 var cell1CorrectValue = i + 1;
 
                 if (cell1Value == cell1CorrectValue) {
                 cells1[i].classList.remove("cell-incorrect");
-                cells1[i].classList.add("cell-correct");
+                cells1[i].classList.add("cell-correct", "animated", "flash", "border-success");
                 } else {
                 cells1[i].classList.remove("cell-correct");
-                cells1[i].classList.add("cell-incorrect");
+                cells1[i].classList.add("cell-incorrect", "animated", "pulse", "border-danger");
                 isTableCorrect = false;
                 }
             }
-           
-            }
 
-            function resetTable() {
-            window.location.reload();
-            colorizeTable();
+            if (isTableCorrect) {
+                // Se estiver correta, exibe um alerta
+                alert("Parabéns, você preencheu a sequência numérica corretamente!");
+            } else {
+                // Se não estiver correta, exibe um alerta
+                alert("Continue tentando.");
             }
-
+        }
 
 	</script>
 </body>
