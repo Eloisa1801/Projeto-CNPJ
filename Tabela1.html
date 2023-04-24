@@ -16,7 +16,13 @@
 			align-items: center;
 			font-size: 20px;
 		}
-
+        
+        .cell[contenteditable="true"] {
+            font-weight: bold;
+        }
+        .cell:focus {
+            background-color: #FFD658;
+        }
 		.blue {
 			background-color: rgb(99, 152, 202);
 			color: #333;
@@ -50,7 +56,7 @@
             font-weight: bold; /* Texto em negrito */
             transition: all 0.2s ease-in-out; /* Efeito de transição suave */
             box-shadow: 0px 0px 10px #5cb85c; /* efeito de luminosidade */
-            border: 2px solid #389738; /* borda verde */
+            /* border: 2px solid #389738; borda verde */
         }
 
         .cell-incorrect {
@@ -59,8 +65,28 @@
             font-weight: bold; /* Texto em negrito */
             transition: all 0.2s ease-in-out; /* Efeito de transição suave */
             box-shadow: 0px 0px 10px rgba(255, 0, 0, 0.3); /* efeito de luminosidade */
-            border: 2px solid #ff0000; /* borda vermelha */
+            /* border: 2px solid #ff0000; borda vermelha */
         }
+
+        progress {
+        width: 45%;
+        height: 20px;
+        border: none;
+        background-color: #f2f2f2;
+        }
+
+        progress::-webkit-progress-bar {
+        background-color: #f2f2f2;
+        }
+
+        progress::-webkit-progress-value {
+        background-color: #4caf50;
+        }
+
+        progress::-moz-progress-bar {
+        background-color: #4caf50;
+        }
+
         
 	</style>
 </head>
@@ -68,9 +94,18 @@
 	<div class="container">
 		<div class="table" id="table1"></div>
 	</div>
-     <button id="colorize-button" onclick="colorizeTable()">Atualizar</button>
-     <button id="verify-button" onclick="verifyTable()">Verificar Resposta</button>
+     <button id="colorize-button" onclick="colorizeTable()">ATUALIZAR</button>
+     <button id="verify-button" onclick="verifyTable(); updateProgressBar()">VERIFICAR RESPOSTA</button>
      
+     <div>
+        <progress id="progress-bar" max="100"></progress>
+        <span id="progress-percent"></span>
+      </div>
+      <div>
+        <progress id="error-progress-bar" max="100"></progress>
+        <span id="error-progress-percent"></span>
+      </div>
+
 	<script>
 		// Criando a tabela 1 com os números de 1 a 50
 		var table1 = document.getElementById("table1");
@@ -88,6 +123,7 @@
 
 		function colorizeTable() {
         // Criando a tabela 2 com números aleatórios entre 0 e 1
+        
         var table2 = document.createElement("div");
             for (var i = 0; i < 5; i++) {
                 var row = document.createElement("div");
@@ -134,6 +170,7 @@
                 }
             });
 
+
             } else {
             cells1[i].classList.remove("blue");
             cells1[i].innerHTML = i + 1;
@@ -150,59 +187,122 @@
         function validateTable() {
         var cells1 = document.querySelectorAll("#table1 .cell");
         for (var i = 0; i < cells1.length; i++) {
-            if (cells1[i].innerHTML != i + 1) {
-            return false; // Se a célula não estiver preenchida corretamente, retorna false
+            if (!cells1[i].classList.contains("readonly") && cells1[i].innerHTML != i + 1) {
+                return false; // Se a célula não estiver preenchida corretamente e for editável, retorna false
             }
         }
-        return true; // Se todas as células estiverem preenchidas corretamente, retorna true
+        return true; // Se todas as células editáveis estiverem preenchidas corretamente, retorna true
+    }
+
+    function verifyTable() {
+    // Verifica se todas as células estão preenchidas
+    var cells1 = document.querySelectorAll("#table1 .cell");
+    var isTableComplete = true;
+    for (var i = 0; i < cells1.length; i++) {
+        if (cells1[i].innerHTML === "") {
+        isTableComplete = false;
+        break;
         }
+    }
 
-        function verifyTable() {
-            // Verifica se todas as células estão preenchidas
-            var cells1 = document.querySelectorAll("#table1 .cell");
-            var isTableComplete = true;
-            for (var i = 0; i < cells1.length; i++) {
-                if (cells1[i].innerHTML === "") {
-                isTableComplete = false;
-                break;
-                }
+    if (!isTableComplete) {
+        // Se não estiver completa, exibe um alerta
+        alert("Você não finalizou, continue!");
+        return;
+    }
+
+    // Remove todas as classes de estilo adicionadas anteriormente
+    cells1.forEach(function (cell) {
+        cell.classList.remove("correct", "incorrect", "animated", "flash", "pulse", "border-danger", "border-success", "cell-correct", "cell-incorrect");
+    });
+
+    var isTableCorrect = true;
+    for (var i = 0; i < cells1.length; i++) {
+        var cell1Value = cells1[i].innerHTML;
+        var cell1CorrectValue = i + 1;
+
+        if (cells1[i].getAttribute('contenteditable') === "true") {
+        if (cell1Value == cell1CorrectValue) {
+            cells1[i].classList.remove("cell-incorrect");
+            cells1[i].classList.add("cell-correct", "animated", "flash", "border-success");
+        } else {
+            cells1[i].classList.remove("cell-correct");
+            cells1[i].classList.add("cell-incorrect", "animated", "pulse", "border-danger");
+            isTableCorrect = false;
+        }
+        }
+    }
+
+    if (isTableCorrect) {
+        // Se estiver correta, exibe um alerta
+        alert("Parabéns, você preencheu a sequência numérica corretamente!");
+    } else {
+        // Se não estiver correta, exibe um alerta
+        alert("Você esta indo bem, olhe o que você acertou.");
+    }
+    }
+
+    // Seleciona todos os elementos com a classe "cell"
+    var cells = document.querySelectorAll(".cell");
+
+    // Adiciona um listener para o evento "keydown" em cada célula
+    cells.forEach(function(cell) {
+    cell.addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+        event.preventDefault(); // Previne o comportamento padrão de saltar para a próxima linha
+        var nextCellIndex = Array.prototype.indexOf.call(cells, cell) + 1; // Obtém o índice da próxima célula
+        var foundEditable = false; // Inicializa o flag para indicar se a próxima célula editável foi encontrada
+        while (nextCellIndex < cells.length && !foundEditable) {
+            if (cells[nextCellIndex].getAttribute("contenteditable") === "true") {
+            foundEditable = true; // Muda o valor do flag para true
+            cells[nextCellIndex].focus(); // Foca no próximo elemento
             }
-
-            if (!isTableComplete) {
-                // Se não estiver completa, exibe um alerta
-                alert("Por favor, finalize a sequência numérica.");
-                return;
-            }
-
-            // Remove todas as classes de estilo adicionadas anteriormente
-            cells1.forEach(function (cell) {
-                cell.classList.remove("correct", "incorrect", "animated", "flash", "pulse", "border-danger", "border-success");
-            });
-
-            var isTableCorrect = true;
-            for (var i = 0; i < cells1.length; i++) {
-                var cell1Value = cells1[i].innerHTML;
-                var cell1CorrectValue = i + 1;
-
-                if (cell1Value == cell1CorrectValue) {
-                cells1[i].classList.remove("cell-incorrect");
-                cells1[i].classList.add("cell-correct", "animated", "flash", "border-success");
-                } else {
-                cells1[i].classList.remove("cell-correct");
-                cells1[i].classList.add("cell-incorrect", "animated", "pulse", "border-danger");
-                isTableCorrect = false;
-                }
-            }
-
-            if (isTableCorrect) {
-                // Se estiver correta, exibe um alerta
-                alert("Parabéns, você preencheu a sequência numérica corretamente!");
-            } else {
-                // Se não estiver correta, exibe um alerta
-                alert("Continue tentando.");
+            else {
+            nextCellIndex++; // Passa para a próxima célula
             }
         }
+        }
+    });
+});
 
-	</script>
+//calculando total de acertos e erros
+function updateProgressBar() {
+  var cells = document.querySelectorAll("#table1 .cell");
+  var totalCells = cells.length;
+  var correctCells = 0;
+  var editableCells = 0;
+
+  for (var i = 0; i < totalCells; i++) {
+    var cell = cells[i];
+    if (cell.contentEditable === "true") {
+      editableCells++;
+      var cellValue = cell.innerHTML;
+      var correctValue = i + 1;
+
+      if (cellValue == correctValue) {
+        correctCells++;
+      }
+    }
+  }
+  
+  var percentage = (correctCells / editableCells) * 100;
+  const errorPercentage = ((editableCells - correctCells) / editableCells) * 100;
+  var progressBar = document.getElementById("progress-bar");
+  var progressPercent = document.getElementById("progress-percent");
+  const errorProgressBar = document.getElementById("error-progress-bar");
+  const errorProgressPercent = document.getElementById("error-progress-percent");
+  progressBar.value = percentage;
+  progressPercent.textContent = percentage.toFixed(0) + "%";
+  errorProgressBar.value = errorPercentage;
+  errorProgressPercent.textContent = errorPercentage.toFixed(0) + "%";
+
+  return {
+    totalEditableCells: editableCells,
+    totalCorrectEditableCells: correctCells,
+    totalIncorrectEditableCells: editableCells - correctCells,
+  };
+}
+
+</script>
 </body>
 </html>
