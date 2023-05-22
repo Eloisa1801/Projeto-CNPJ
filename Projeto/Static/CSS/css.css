@@ -31,6 +31,10 @@ div{
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
     
 }   
 
@@ -70,11 +74,11 @@ div{
 }
 
 #matricula{
-    background: url("https://img.icons8.com/material-outlined/24/null/user--v1.png");
+    background-image: url("https://img.icons8.com/material-outlined/24/null/user--v1.png");
     background-repeat: no-repeat;
-    background-position: left;
+    background-position: calc(100% - 1.3em) center;
     background-size: 1.3em;
-    padding-left: 1.3em;
+    padding-right: 1.3em;
 }
 
 .tela01_botao button{
